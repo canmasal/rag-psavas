@@ -3,6 +3,7 @@ import "@fontsource-variable/fraunces";
 import "@fontsource-variable/manrope";
 import "./globals.css";
 import { siteUrl } from "@/lib/utils";
+import { revealBootScript } from "@/components/site/RevealObserver";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -20,7 +21,10 @@ export const viewport: Viewport = { themeColor: "#17121f" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: revealBootScript }} />
+      </head>
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

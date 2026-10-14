@@ -20,7 +20,9 @@ WordPress yerine sıfırdan geliştirilmiş, hızlı ve güvenli kurumsal web si
 | İletişim | Form, harita, telefon / WhatsApp |
 | Ücretsiz deneme dersi | Başvuru formu (yönetim paneline düşer) |
 | Yasal | KVKK, gizlilik, mesafeli satış sözleşmesi, iptal & iade |
-| SEO | Sitemap, robots, Open Graph, schema.org (Course, FAQ) yapılandırılmış veri |
+| Eğitmenlerimiz | Yönetim panelinden eklenen eğitmen kadrosu |
+| SEO | Sitemap, robots, Open Graph, schema.org (EducationalOrganization/LocalBusiness, Course, FAQ) |
+| Deneyim | Kaydırınca beliren animasyonlar, mobilde sabit "Kayıt Ol" çubuğu, KVKK çerez bildirimi, WhatsApp butonu |
 
 ### Üye paneli (`/panel`)
 - Üye ol / giriş / şifremi unuttum (e-posta ile sıfırlama)
@@ -35,9 +37,22 @@ WordPress yerine sıfırdan geliştirilmiş, hızlı ve güvenli kurumsal web si
 - Deneme dersi talepleri, iletişim mesajları
 - Üyeler (arama, detay, yönetici yetkisi, elle üye açma)
 - Eğitim & fiyat paketi düzenleme, blog yazıları, galeri (fotoğraf yükleme / YouTube), duyurular
-- Site ayarları: telefonlar, adres, e-posta, sosyal medya, IBAN, üst duyuru şeridi
+- Site ayarları: telefonlar, adres, e-posta, sosyal medya, IBAN, üst duyuru şeridi, **ana sayfa kapak fotoğrafı, kurucu portresi, tanıtım videosu**
+- Eğitmen kadrosu yönetimi (sitede "Eğitmenlerimiz" sayfası ve ana sayfa bölümü)
+- WordPress'ten tek tıkla içerik aktarımı
 
 ---
+
+## Eski WordPress sitesinden içerik aktarımı
+
+Eski sitedeki **fotoğraflar, blog yazıları ve eğitim sayfalarının görselleri/metinleri** tek işlemle aktarılır:
+
+- **Yönetim paneli → WordPress Aktarımı** sayfasından "Aktarımı Başlat" butonuna basın, ya da
+- komut satırından: `npm run import:wordpress -- https://www.ragipsavassanat.com` (eğitim metinlerini de almak için sonuna `--metinler` ekleyin)
+
+Aktarım; medya kütüphanesindeki fotoğrafları galeriye, yazıları bloga, eşleşen eğitim sayfalarının öne çıkan görsellerini eğitimlere ekler ve geniş bir fotoğrafı ana sayfa kapağı yapar. Tekrar çalıştırılabilir; daha önce aktarılanlar atlanır.
+
+> Not: Aktarım, eski WordPress sitesi yayındayken ve `/wp-json` adresi erişilebilir durumdayken yapılmalıdır. Yeni siteye geçmeden önce çalıştırın.
 
 ## Kurulum (yerel)
 

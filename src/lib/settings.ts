@@ -18,10 +18,15 @@ export const defaultSettings = {
   bankAccountName: "Ragıp Savaş Sanat Akademisi",
   bankIban: "TR00 0000 0000 0000 0000 0000 00",
   announcementBar: "Yeni dönem kayıtları başladı · Dönemlik kayıtlarda %10 indirim",
+  heroImage: "",
+  founderImage: "",
+  aboutImage: "",
+  heroVideo: "",
 };
 
 export type SiteSettings = typeof defaultSettings;
 export type SettingKey = keyof SiteSettings;
+export const imageSettingKeys = ["heroImage", "founderImage", "aboutImage"] as const;
 
 export const settingLabels: Record<SettingKey, string> = {
   siteName: "Site adı",
@@ -40,6 +45,10 @@ export const settingLabels: Record<SettingKey, string> = {
   bankAccountName: "Hesap sahibi",
   bankIban: "IBAN",
   announcementBar: "Üst duyuru şeridi (boş bırakılırsa gizlenir)",
+  heroImage: "Ana sayfa kapak fotoğrafı",
+  founderImage: "Ragıp Savaş portre fotoğrafı",
+  aboutImage: "Hakkımızda sayfası fotoğrafı",
+  heroVideo: "Ana sayfa tanıtım videosu (YouTube bağlantısı)",
 };
 
 export const getSettings = cache(async (): Promise<SiteSettings> => {

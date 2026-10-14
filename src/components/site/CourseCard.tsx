@@ -20,6 +20,7 @@ export type CourseCardData = {
 export function CourseCard({ course }: { course: CourseCardData }) {
   return (
     <Link
+      data-reveal
       href={`/egitimlerimiz/${course.slug}`}
       className="group flex h-full flex-col overflow-hidden rounded-[1.4rem] border border-line bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(23,18,31,0.35)]"
     >

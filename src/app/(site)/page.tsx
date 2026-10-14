@@ -7,15 +7,20 @@ import { CourseCard } from "@/components/site/CourseCard";
 import { PostCard } from "@/components/site/PostCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { testimonials } from "@/data/content";
+import { getSettings } from "@/lib/settings";
+import { InstructorCard } from "@/components/site/InstructorCard";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [courses, posts, gallery] = await Promise.all([
+  const [courses, posts, gallery, settings, instructors] = await Promise.all([
     db.course.findMany({ where: { active: true }, orderBy: { order: "asc" }, include: { packages: { orderBy: { price: "asc" }, take: 1 } } }),
     db.post.findMany({ where: { published: true }, orderBy: { publishedAt: "desc" }, take: 3 }),
     db.galleryItem.findMany({ orderBy: [{ order: "asc" }, { createdAt: "desc" }], take: 5 }),
+    getSettings(),
+    db.instructor.findMany({ where: { active: true }, orderBy: [{ order: "asc" }, { createdAt: "asc" }], take: 4 }),
   ]);
+  const heroImage = settings.heroImage;
   const featured = courses.filter((c) => c.featured).slice(0, 6);
   const heroCourses = courses.slice(0, 6);
 
@@ -26,12 +31,22 @@ export default async function HomePage() {
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-40 top-10 h-[34rem] w-[34rem] rounded-full bg-accent/30 blur-[120px]" />
           <div className="absolute -right-20 bottom-0 h-[26rem] w-[26rem] rounded-full bg-gold/20 blur-[110px]" />
-          {/* Sahne perdesi motifi */}
-          <svg className="absolute inset-x-0 top-0 h-24 w-full text-accent/40" viewBox="0 0 1200 100" preserveAspectRatio="none" aria-hidden>
-            <path d="M0 0h1200v40c-50 0-50 30-100 30S1050 40 1000 40s-50 30-100 30S850 40 800 40s-50 30-100 30S650 40 600 40s-50 30-100 30S450 40 400 40s-50 30-100 30S250 40 200 40s-50 30-100 30S50 40 0 40Z" fill="currentColor" />
-          </svg>
+          {heroImage ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={heroImage} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/20" />
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-ink to-transparent" />
+            </>
+          ) : (
+            <>
+              {/* Sahne ışığı */}
+              <div className="absolute left-1/2 top-0 h-full w-[60rem] -translate-x-1/2 bg-[radial-gradient(ellipse_at_top,rgba(244,231,200,0.10),transparent_60%)]" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
+            </>
+          )}
         </div>
-        <div className="container-rs relative grid items-center gap-14 py-20 md:py-28 lg:grid-cols-[1.1fr_1fr]">
+        <div className={`container-rs relative grid items-center gap-14 py-20 md:py-28 ${heroImage ? "min-h-[78vh] lg:grid-cols-[1.2fr_0.8fr]" : "lg:grid-cols-[1.1fr_1fr]"}`}>
           <div className="animate-fade-up">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-bold tracking-wide text-gold">
               <Sparkles className="h-3.5 w-3.5" /> 2007&apos;den beri Göktürk&apos;te
@@ -50,6 +65,12 @@ export default async function HomePage() {
               <Link href="/egitimlerimiz" className="btn btn-ghost-light">
                 Eğitimleri Keşfet
               </Link>
+              {settings.heroVideo && (
+                <a href={settings.heroVideo} target="_blank" rel="noreferrer" className="group inline-flex items-center gap-3 px-2 text-sm font-bold text-white">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-white/10 ring-1 ring-white/30 transition group-hover:bg-white group-hover:text-ink"><Play className="h-4 w-4 fill-current" /></span>
+                  Tanıtım filmini izle
+                </a>
+              )}
             </div>
             <dl className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-white/10 pt-8">
               {[
@@ -65,7 +86,7 @@ export default async function HomePage() {
               ))}
             </dl>
           </div>
-          <div className="relative hidden lg:block">
+          {!heroImage && <div className="relative hidden lg:block">
             <div className="grid grid-cols-3 gap-3">
               {heroCourses.map((c, i) => (
                 <Link
@@ -82,7 +103,7 @@ export default async function HomePage() {
               <span className="grid h-11 w-11 place-items-center rounded-full bg-gold-soft text-gold"><Award className="h-5 w-5" /></span>
               <span className="text-sm leading-tight"><b className="block">LCM & MEB</b>onaylı müzik programı</span>
             </div>
-          </div>
+          </div>}
         </div>
       </section>
 
@@ -117,7 +138,7 @@ export default async function HomePage() {
       <section className="bg-sand py-20 md:py-28">
         <div className="container-rs grid gap-14 lg:grid-cols-[1fr_1.2fr] lg:items-center">
           <div className="relative">
-            <ArtCover seed="ragip-savas-portre" color="#2a2236" icon="Drama" className="aspect-[4/5] rounded-[2rem]" />
+            <ArtCover seed="ragip-savas-portre" color="#2a2236" icon="Drama" image={settings.founderImage || null} alt="Ragıp Savaş" className="aspect-[4/5] rounded-[2rem]" />
             <div className="absolute -bottom-8 -right-4 max-w-xs rounded-2xl bg-white p-6 shadow-2xl md:-right-10">
               <Quote className="h-6 w-6 text-accent" />
               <p className="mt-2 font-display text-lg leading-snug">
@@ -163,7 +184,7 @@ export default async function HomePage() {
               { Icon: CreditCard, t: "Güvenle ödeyin", d: "Kredi kartı (taksit) veya Havale/EFT ile ödeyin." },
               { Icon: CalendarCheck, t: "Derse başlayın", d: "Ders programınız ve duyurular panelinizde." },
             ].map(({ Icon, t, d }, i) => (
-              <li key={t} className="relative rounded-[1.4rem] border border-line bg-white p-7">
+              <li key={t} data-reveal style={{ ["--rv-delay" as string]: `${i * 90}ms` }} className="relative rounded-[1.4rem] border border-line bg-white p-7">
                 <span className="absolute right-6 top-5 font-display text-5xl text-line">0{i + 1}</span>
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-gold"><Icon className="h-5 w-5" /></span>
                 <p className="mt-5 font-display text-xl">{t}</p>
@@ -178,6 +199,19 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* EĞİTMENLER */}
+      {instructors.length > 0 && (
+        <section className="bg-white py-20 md:py-28">
+          <div className="container-rs">
+            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+              <SectionHeading eyebrow="Kadromuz" title="Alanında uzman eğitmenler" description="Konservatuvar ve güzel sanatlar mezunu, sahne deneyimli eğitmenlerimizle tanışın." />
+              <Link href="/egitmenlerimiz" className="btn btn-outline shrink-0">Tüm Kadro <ArrowRight className="h-4 w-4" /></Link>
+            </div>
+            <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">{instructors.map((t) => <InstructorCard key={t.id} t={t} />)}</div>
+          </div>
+        </section>
+      )}
+
       {/* YORUMLAR */}
       <section className="relative overflow-hidden bg-ink py-20 text-white md:py-28">
         <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-accent/25 blur-[100px]" />
@@ -185,7 +219,7 @@ export default async function HomePage() {
           <SectionHeading light eyebrow="Veli & Öğrenci Yorumları" title="Onların sahnesinden" />
           <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {testimonials.map((t) => (
-              <figure key={t.name} className="flex flex-col rounded-[1.4rem] border border-white/10 bg-white/5 p-6 backdrop-blur">
+              <figure key={t.name} data-reveal className="flex flex-col rounded-[1.4rem] border border-white/10 bg-white/5 p-6 backdrop-blur">
                 <div className="flex gap-0.5 text-gold">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
                 <blockquote className="mt-4 flex-1 text-[0.95rem] leading-relaxed text-white/80">&ldquo;{t.text}&rdquo;</blockquote>
                 <figcaption className="mt-6 border-t border-white/10 pt-4">

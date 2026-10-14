@@ -3,20 +3,22 @@ import type { Metadata } from "next";
 import { ArrowRight, Clapperboard, Theater, Tv, Trophy } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { ArtCover } from "@/components/art";
+import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Ragıp Savaş Kimdir?",
   description: "Akademimizin kurucusu ve Genel Sanat Yönetmeni Ragıp Savaş'ın hayatı ve sanat kariyeri.",
 };
 
-export default function BioPage() {
+export default async function BioPage() {
+  const settings = await getSettings();
   return (
     <>
       <PageHero eyebrow="Kurucumuz" title="Ragıp Savaş Kimdir?" crumbs={[{ href: "/hakkimizda", label: "Kurumsal" }, { label: "Ragıp Savaş Kimdir?" }]} />
       <section className="py-20">
         <div className="container-rs grid gap-14 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <ArtCover seed="ragip-savas-bio" color="#2a2236" icon="Drama" className="aspect-[4/5] rounded-[2rem]" />
+            <ArtCover seed="ragip-savas-bio" color="#2a2236" icon="Drama" image={settings.founderImage || null} alt="Ragıp Savaş" className="aspect-[4/5] rounded-[2rem]" />
             <div className="mt-6 grid grid-cols-2 gap-3 text-center">
               {[["1966", "İzmit doğumlu"], ["1990", "Konservatuvar mezuniyeti"], ["2007", "Akademinin kuruluşu"], ["35+ yıl", "Sahne deneyimi"]].map(([v, l]) => (
                 <div key={l} className="card p-4">

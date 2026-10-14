@@ -16,7 +16,7 @@ export function PostCard({
   post: { slug: string; title: string; excerpt: string; category: string; cover: string | null; publishedAt: Date; readMinutes: number };
 }) {
   return (
-    <Link href={`/blog/${post.slug}`} className="group flex h-full flex-col">
+    <Link data-reveal href={`/blog/${post.slug}`} className="group flex h-full flex-col">
       <ArtCover
         seed={post.slug}
         color={catColors[post.category] ?? "#2a2236"}

@@ -29,7 +29,7 @@ const galleryArt = [
 
 function shade(hex: string, amt: number) {
   const n = parseInt(hex.slice(1), 16);
-  const f = (v: number) => Math.max(0, Math.min(255, Math.round(v * (1 + amt))));
+  const f = (v: number) => Math.max(0, Math.min(255, Math.round(amt >= 0 ? v + (255 - v) * amt : v * (1 + amt))));
   return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => f(v).toString(16).padStart(2, "0")).join("")}`;
 }
 
@@ -39,17 +39,25 @@ function artSvg(i: number, color: string, Icon: typeof Drama) {
     .replace(/<\/svg>$/, "");
   const w = 1200;
   const h = i % 3 === 0 ? 1500 : i % 3 === 1 ? 1200 : 900;
-  const r = (s: number) => ((Math.sin(i * 97 + s * 13) + 1) / 2);
+  const r = (s: number) => (Math.sin(i * 97 + s * 13) + 1) / 2;
+  const blobs = [
+    [shade(color, 0.05), r(1) * w, r(2) * h, 520, 0.95],
+    [shade(color, -0.3), r(3) * w, r(4) * h, 420, 0.9],
+    ["#c99a3b", 200 + r(5) * 800, 150 + r(6) * (h - 300), 260, 0.5],
+    [shade(color, 0.3), r(7) * w, r(8) * h, 220, 0.6],
+  ] as const;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
   <defs>
-    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(color, 0.2)}"/><stop offset="1" stop-color="${shade(color, -0.55)}"/></linearGradient>
-    <radialGradient id="b"><stop offset="0" stop-color="#f4e7c8" stop-opacity=".6"/><stop offset="1" stop-color="#f4e7c8" stop-opacity="0"/></radialGradient>
+    <filter id="b" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="120"/></filter>
+    <pattern id="l" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="18" stroke="#fff" stroke-opacity=".045" stroke-width="3"/></pattern>
+    <linearGradient id="v" x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></linearGradient>
   </defs>
-  <rect width="${w}" height="${h}" fill="url(#a)"/>
-  <circle cx="${200 + r(1) * 800}" cy="${150 + r(2) * (h - 300)}" r="${300 + r(3) * 200}" fill="url(#b)"/>
-  ${[0, 1, 2, 3, 4].map((k) => `<circle cx="${r(4) * w}" cy="${h - r(5) * 200}" r="${180 + k * 110}" fill="none" stroke="#fff" stroke-opacity="${0.22 - k * 0.04}" stroke-width="3"/>`).join("")}
-  <path d="M0 ${h * 0.78} C ${w * 0.3} ${h * 0.62}, ${w * 0.65} ${h * 0.95}, ${w} ${h * 0.7} L ${w} ${h} L 0 ${h} Z" fill="#000" fill-opacity=".16"/>
-  <g transform="translate(${w * 0.5 - 260} ${h * 0.5 - 260}) scale(21.6)" fill="none" stroke="#fff" stroke-opacity=".55" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">${icon}</g>
+  <rect width="${w}" height="${h}" fill="${shade(color, -0.62)}"/>
+  <g filter="url(#b)">${blobs.map(([c, x, y, rad, o]) => `<circle cx="${x}" cy="${y}" r="${rad}" fill="${c}" opacity="${o}"/>`).join("")}</g>
+  <rect width="${w}" height="${h}" fill="url(#l)"/>
+  ${[0, 1, 2].map((k) => `<circle cx="${w * 0.75}" cy="${h * 0.8}" r="${280 + k * 140}" fill="none" stroke="#f4e7c8" stroke-opacity="${0.16 - k * 0.04}" stroke-width="2.5"/>`).join("")}
+  <rect width="${w}" height="${h}" fill="url(#v)"/>
+  <g transform="translate(${w * 0.5 - 130} ${h * 0.5 - 130}) scale(10.8)" fill="none" stroke="#fff" stroke-opacity=".4" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.8">${icon}</g>
 </svg>`;
 }
 
@@ -98,14 +106,13 @@ async function main() {
   }
 
   console.log("→ Galeri");
-  if ((await db.galleryItem.count()) === 0) {
-    const dir = path.join(process.cwd(), "public", "galeri");
-    fs.mkdirSync(dir, { recursive: true });
-    for (const [i, g] of galleryArt.entries()) {
-      const file = `ornek-${String(i + 1).padStart(2, "0")}.svg`;
-      fs.writeFileSync(path.join(dir, file), artSvg(i, g.color, g.Icon));
-      await db.galleryItem.create({ data: { title: g.title, category: g.category, imageUrl: `/galeri/${file}`, order: i } });
-    }
+  const dir = path.join(process.cwd(), "public", "galeri");
+  fs.mkdirSync(dir, { recursive: true });
+  const createRows = (await db.galleryItem.count()) === 0;
+  for (const [i, g] of galleryArt.entries()) {
+    const file = `ornek-${String(i + 1).padStart(2, "0")}.svg`;
+    fs.writeFileSync(path.join(dir, file), artSvg(i, g.color, g.Icon));
+    if (createRows) await db.galleryItem.create({ data: { title: g.title, category: g.category, imageUrl: `/galeri/${file}`, order: i } });
   }
 
   console.log(`✓ Tamamlandı. Yönetici: ${adminEmail} / ${process.env.ADMIN_PASSWORD ? "(.env'deki şifre)" : adminPassword}`);

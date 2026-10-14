@@ -20,10 +20,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/yonetim/mesajlar", label: "Mesajlar", icon: "Mail", badge: messages },
     { href: "/yonetim/uyeler", label: "Üyeler", icon: "Users" },
     { href: "/yonetim/egitimler", label: "Eğitimler", icon: "BookOpen" },
+    { href: "/yonetim/egitmenler", label: "Eğitmenler", icon: "UserRound" },
     { href: "/yonetim/blog", label: "Blog", icon: "FileText" },
     { href: "/yonetim/galeri", label: "Galeri", icon: "ImageIcon" },
     { href: "/yonetim/duyurular", label: "Duyurular", icon: "Megaphone" },
     { href: "/yonetim/ayarlar", label: "Site Ayarları", icon: "Settings" },
+    { href: "/yonetim/aktarim", label: "WordPress Aktarımı", icon: "Sparkles" },
   ];
   return (
     <Shell title="Yönetim Paneli" accent="Yönetim Paneli" nav={nav} user={{ name: user.name, email: user.email }}>

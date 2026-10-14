@@ -99,6 +99,30 @@ export function Header({
                   {l.label}
                   <ChevronDown className={cn("h-4 w-4 transition", mega && "rotate-180")} />
                 </button>
+              ) : l.href === "/hakkimizda" ? (
+                <div key={l.href} className="group relative" onMouseEnter={() => setMega(false)}>
+                  <Link
+                    href={l.href}
+                    className={cn(
+                      "flex items-center gap-1 rounded-full px-4 py-2 text-[0.92rem] font-semibold transition hover:bg-sand",
+                      ["/hakkimizda", "/ragip-savas-kimdir", "/egitmenlerimiz"].includes(pathname) && "text-accent",
+                    )}
+                  >
+                    {l.label}
+                    <ChevronDown className="h-4 w-4 transition group-hover:rotate-180" />
+                  </Link>
+                  <div className="invisible absolute left-0 top-full z-50 w-60 translate-y-1 pt-2 opacity-0 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="rounded-2xl border border-line bg-white p-2 shadow-xl shadow-black/5">
+                      {[
+                        ["/hakkimizda", "Hakkımızda"],
+                        ["/ragip-savas-kimdir", "Ragıp Savaş Kimdir?"],
+                        ["/egitmenlerimiz", "Eğitmenlerimiz"],
+                      ].map(([href, label]) => (
+                        <Link key={href} href={href} className="block rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-sand hover:text-accent">{label}</Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <Link
                   key={l.href}
@@ -195,7 +219,7 @@ export function Header({
           </div>
           <nav className="flex-1 overflow-y-auto px-5 py-6" aria-label="Mobil menü">
             <ul className="space-y-1">
-              {[{ href: "/", label: "Ana Sayfa" }, { href: "/hakkimizda", label: "Hakkımızda" }, { href: "/ragip-savas-kimdir", label: "Ragıp Savaş Kimdir?" }, ...links.slice(1)].map((l) => (
+              {[{ href: "/", label: "Ana Sayfa" }, { href: "/hakkimizda", label: "Hakkımızda" }, { href: "/ragip-savas-kimdir", label: "Ragıp Savaş Kimdir?" }, { href: "/egitmenlerimiz", label: "Eğitmenlerimiz" }, ...links.slice(1)].map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className={cn("block rounded-xl px-3 py-3 font-display text-xl", pathname === l.href ? "bg-sand text-accent" : "hover:bg-sand")}>
                     {l.label}

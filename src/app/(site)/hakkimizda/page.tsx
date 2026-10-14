@@ -4,6 +4,7 @@ import { ArrowRight, Eye, Target, Gem } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { ArtCover } from "@/components/art";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Hakkımızda",
@@ -17,7 +18,8 @@ const timeline = [
   { y: "Bugün", t: "17.000+ mezun", d: "Binlerce çocuk ve yetişkin akademimizde sanatla tanıştı, yüzlercesi profesyonel sahneye adım attı." },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSettings();
   return (
     <>
       <PageHero
@@ -48,13 +50,17 @@ export default function AboutPage() {
               düzenli gelişim takibiyle her öğrencinin potansiyelini en iyi şekilde ortaya çıkarmayı hedefliyoruz.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <ArtCover seed="hakkimizda-1" color="#b8242f" icon="Drama" className="aspect-[3/4] rounded-[1.6rem]" />
-            <div className="space-y-4 pt-12">
-              <ArtCover seed="hakkimizda-2" color="#1f3a8a" icon="Piano" className="aspect-square rounded-[1.6rem]" />
-              <ArtCover seed="hakkimizda-3" color="#c2477a" icon="Sparkles" className="aspect-square rounded-[1.6rem]" />
+          {settings.aboutImage ? (
+            <ArtCover seed="hakkimizda" image={settings.aboutImage} alt="Ragıp Savaş Sanat Akademisi" className="aspect-[4/3] rounded-[2rem] shadow-2xl" />
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <ArtCover seed="hakkimizda-1" color="#b8242f" icon="Drama" className="aspect-[3/4] rounded-[1.6rem]" />
+              <div className="space-y-4 pt-12">
+                <ArtCover seed="hakkimizda-2" color="#1f3a8a" icon="Piano" className="aspect-square rounded-[1.6rem]" />
+                <ArtCover seed="hakkimizda-3" color="#c2477a" icon="Sparkles" className="aspect-square rounded-[1.6rem]" />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -89,6 +95,7 @@ export default function AboutPage() {
           </ol>
           <div className="mt-16 flex flex-wrap gap-3">
             <Link href="/ragip-savas-kimdir" className="btn btn-dark">Ragıp Savaş Kimdir? <ArrowRight className="h-4 w-4" /></Link>
+            <Link href="/egitmenlerimiz" className="btn btn-outline">Eğitmenlerimiz</Link>
             <Link href="/egitimlerimiz" className="btn btn-outline">Eğitimlerimiz</Link>
           </div>
         </div>

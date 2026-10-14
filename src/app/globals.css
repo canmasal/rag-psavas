@@ -90,3 +90,18 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
+
+/* Kaydırınca beliren içerik */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--rv-delay, 0ms);
+}
+html.js [data-reveal].is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
+.grid > [data-reveal]:nth-child(3n + 2), .grid > [data-reveal-item]:nth-child(3n + 2) { --rv-delay: 90ms; }
+.grid > [data-reveal]:nth-child(3n + 3), .grid > [data-reveal-item]:nth-child(3n + 3) { --rv-delay: 180ms; }

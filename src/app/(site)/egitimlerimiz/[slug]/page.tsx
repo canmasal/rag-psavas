@@ -159,6 +159,17 @@ export default async function CourseDetailPage({ params }: Props) {
           </div>
         </section>
       )}
+      {course.packages.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.25)] backdrop-blur lg:hidden">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-muted">{course.title}</p>
+              <p className="font-display text-lg leading-tight">{formatPrice(Math.min(...course.packages.map((p) => p.price)))}<span className="text-xs font-sans text-muted">&apos;den başlayan</span></p>
+            </div>
+            <a href="#paketler" className="btn btn-primary btn-sm">Kayıt Ol</a>
+          </div>
+        </div>
+      )}
     </>
   );
 }

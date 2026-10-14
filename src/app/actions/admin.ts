@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
 import { markPaymentPaid } from "@/lib/payment";
-import { defaultSettings, type SettingKey } from "@/lib/settings";
+import { defaultSettings, imageSettingKeys, type SettingKey } from "@/lib/settings";
 import { slugify } from "@/lib/utils";
 import { UPLOAD_DIR } from "@/lib/uploads";
 import type { FormState } from "@/components/ui/FormAlert";
@@ -318,11 +318,85 @@ export async function createMemberByAdmin(_: FormState, fd: FormData): Promise<F
 export async function saveSettings(_: FormState, fd: FormData): Promise<FormState> {
   await requireAdmin();
   const keys = Object.keys(defaultSettings) as SettingKey[];
+  const values: Record<string, string> = {};
+  for (const key of keys) values[key] = str(fd, key);
+  try {
+    for (const key of imageSettingKeys) {
+      values[key] = (await imageFrom(fd, `${key}File`, key)) ?? "";
+    }
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
   await db.$transaction(
     keys.map((key) =>
-      db.setting.upsert({ where: { key }, create: { key, value: str(fd, key) }, update: { value: str(fd, key) } }),
+      db.setting.upsert({ where: { key }, create: { key, value: values[key] }, update: { value: values[key] } }),
     ),
   );
   revalidateSite();
   return { ok: true, message: "Ayarlar kaydedildi." };
+}
+
+/* ---------------------------- Eğitmenler ---------------------------- */
+
+export async function saveInstructor(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = str(fd, "id");
+  const name = str(fd, "name");
+  if (name.length < 2) return { error: "Eğitmen adı gerekli." };
+  const existing = id ? await db.instructor.findUnique({ where: { id } }) : null;
+  let photo: string | null;
+  try {
+    photo = await imageFrom(fd, "photoFile", "photo", existing?.photo);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  const data = {
+    name,
+    title: str(fd, "title"),
+    bio: str(fd, "bio"),
+    branches: str(fd, "branches"),
+    photo,
+    order: int(fd, "order"),
+    active: fd.get("active") === "on",
+  };
+  if (id) await db.instructor.update({ where: { id }, data });
+  else await db.instructor.create({ data });
+  revalidateSite();
+  return { ok: true, message: id ? "Eğitmen güncellendi." : "Eğitmen eklendi." };
+}
+
+export async function deleteInstructor(fd: FormData) {
+  await requireAdmin();
+  await db.instructor.delete({ where: { id: str(fd, "id") } });
+  revalidateSite();
+}
+
+/* ------------------------- WordPress aktarımı ------------------------- */
+
+export async function runWordPressImport(_: FormState, fd: FormData): Promise<FormState> {
+  await requireAdmin();
+  const { importFromWordPress } = await import("@/lib/wordpress-import");
+  try {
+    const r = await importFromWordPress({
+      baseUrl: str(fd, "url"),
+      gallery: fd.get("gallery") === "on",
+      posts: fd.get("posts") === "on",
+      courseImages: fd.get("courseImages") === "on",
+      courseTexts: fd.get("courseTexts") === "on",
+    });
+    revalidateSite();
+    const parts = [
+      `${r.gallery} fotoğraf galeriye`,
+      `${r.posts} yazı bloga`,
+      `${r.courseImages} eğitim görseli`,
+      `${r.courseTexts} eğitim metni`,
+      `${r.settings} site görseli`,
+    ];
+    return {
+      ok: true,
+      message: `Aktarım tamamlandı: ${parts.join(", ")} aktarıldı. ${r.skipped} öğe atlandı.${r.errors.length ? ` ${r.errors.length} hata: ${r.errors.slice(0, 3).join(" · ")}` : ""}`,
+    };
+  } catch (e) {
+    return { error: `Aktarım başarısız: ${(e as Error).message}. Eski sitenin açık olduğundan ve REST API'nin (/wp-json) kapatılmadığından emin olun.` };
+  }
 }

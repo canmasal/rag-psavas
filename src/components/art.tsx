@@ -18,14 +18,16 @@ function hash(str: string) {
 function shade(hex: string, amount: number) {
   const n = parseInt(hex.replace("#", ""), 16);
   const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
-  const r = clamp(((n >> 16) & 255) * (1 + amount));
-  const g = clamp(((n >> 8) & 255) * (1 + amount));
-  const b = clamp((n & 255) * (1 + amount));
+  const mix = (c: number) => (amount >= 0 ? c + (255 - c) * amount : c * (1 + amount));
+  const r = clamp(mix((n >> 16) & 255));
+  const g = clamp(mix((n >> 8) & 255));
+  const b = clamp(mix(n & 255));
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
 /**
- * Görsel yüklenmemiş içerikler için markaya uygun, deterministik soyut kapak görseli.
+ * Fotoğrafı olmayan içerikler için markaya uygun, deterministik "mesh" kapak görseli.
+ * Fotoğraf yüklendiğinde (image) otomatik olarak fotoğraf gösterilir.
  */
 export function ArtCover({
   seed,
@@ -35,6 +37,7 @@ export function ArtCover({
   className,
   iconClassName,
   alt = "",
+  priority = false,
 }: {
   seed: string;
   color?: string;
@@ -43,59 +46,59 @@ export function ArtCover({
   className?: string;
   iconClassName?: string;
   alt?: string;
+  priority?: boolean;
 }) {
   if (image) {
     return (
-      <div className={cn("relative overflow-hidden bg-sand", className)}>
+      <div className={cn("relative overflow-hidden bg-ink", className)}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image} alt={alt} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={image} alt={alt} className="absolute inset-0 h-full w-full object-cover" loading={priority ? "eager" : "lazy"} />
       </div>
     );
   }
   const rnd = hash(seed);
-  const id = `g${Math.floor(rnd() * 1e6)}`;
-  const c1 = shade(color, 0.15);
-  const c2 = shade(color, -0.45);
-  const cx = 60 + rnd() * 260;
-  const cy = 40 + rnd() * 180;
-  const r = 90 + rnd() * 90;
-  const arcs = Array.from({ length: 4 }, (_, i) => ({ r: 60 + i * 38 + rnd() * 10, o: 0.18 - i * 0.03 }));
-  const ax = rnd() * 400;
-  const ay = 300 - rnd() * 80;
+  const id = `m${Math.floor(rnd() * 1e7)}`;
+  const base = shade(color, -0.62);
+  const blobs = [
+    { c: shade(color, 0.05), x: rnd() * 400, y: rnd() * 300, r: 150 + rnd() * 70, o: 0.95 },
+    { c: shade(color, -0.25), x: rnd() * 400, y: rnd() * 300, r: 120 + rnd() * 60, o: 0.9 },
+    { c: "#c99a3b", x: 60 + rnd() * 280, y: 40 + rnd() * 200, r: 70 + rnd() * 50, o: 0.55 },
+    { c: shade(color, 0.35), x: rnd() * 400, y: rnd() * 300, r: 60 + rnd() * 40, o: 0.6 },
+  ];
+  const ax = 260 + rnd() * 160;
+  const ay = 220 + rnd() * 120;
 
   return (
-    <div className={cn("relative overflow-hidden grain", className)} role="img" aria-label={alt}>
-      <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full">
+    <div className={cn("relative overflow-hidden grain", className)} role={alt ? "img" : undefined} aria-label={alt || undefined} style={{ background: base }}>
+      <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden>
         <defs>
-          <linearGradient id={`${id}a`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={c1} />
-            <stop offset="1" stopColor={c2} />
-          </linearGradient>
-          <radialGradient id={`${id}b`}>
-            <stop offset="0" stopColor="#f4e7c8" stopOpacity="0.55" />
-            <stop offset="1" stopColor="#f4e7c8" stopOpacity="0" />
-          </radialGradient>
-          <pattern id={`${id}d`} width="14" height="14" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.2" fill="white" fillOpacity="0.18" />
+          <filter id={`${id}b`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="38" />
+          </filter>
+          <pattern id={`${id}l`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="white" strokeOpacity="0.045" strokeWidth="1" />
           </pattern>
+          <linearGradient id={`${id}v`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0.45" stopColor="#000" stopOpacity="0" />
+            <stop offset="1" stopColor="#000" stopOpacity="0.35" />
+          </linearGradient>
         </defs>
-        <rect width="400" height="300" fill={`url(#${id}a)`} />
-        <circle cx={cx} cy={cy} r={r} fill={`url(#${id}b)`} />
-        {arcs.map((a, i) => (
-          <circle key={i} cx={ax} cy={ay} r={a.r} fill="none" stroke="white" strokeOpacity={a.o} strokeWidth="1.5" />
+        <g filter={`url(#${id}b)`}>
+          {blobs.map((b, i) => (
+            <circle key={i} cx={b.x} cy={b.y} r={b.r} fill={b.c} opacity={b.o} />
+          ))}
+        </g>
+        <rect width="400" height="300" fill={`url(#${id}l)`} />
+        {[0, 1, 2].map((i) => (
+          <circle key={i} cx={ax} cy={ay} r={90 + i * 46} fill="none" stroke="#f4e7c8" strokeOpacity={0.16 - i * 0.04} strokeWidth="0.75" />
         ))}
-        <rect x={rnd() * 200} y={rnd() * 120} width="140" height="110" fill={`url(#${id}d)`} />
-        <path
-          d={`M0 ${230 + rnd() * 30} C 120 ${170 + rnd() * 60}, 260 ${280 - rnd() * 60}, 400 ${200 + rnd() * 40} L400 300 L0 300 Z`}
-          fill="black"
-          fillOpacity="0.14"
-        />
+        <rect width="400" height="300" fill={`url(#${id}v)`} />
       </svg>
       {icon && (
         <CourseIcon
           name={icon}
-          strokeWidth={1.1}
-          className={cn("absolute -bottom-4 -right-4 h-2/3 w-auto text-white/25", iconClassName)}
+          strokeWidth={0.75}
+          className={cn("absolute bottom-[8%] right-[7%] h-[38%] w-auto text-white/30", iconClassName)}
         />
       )}
     </div>

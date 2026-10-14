@@ -191,3 +191,15 @@ model Setting {
   key   String @id
   value String
 }
+
+model Instructor {
+  id       String   @id @default(cuid())
+  name     String
+  title    String
+  bio      String   @default("")
+  photo    String?
+  branches String   @default("") // virgülle ayrılmış branş adları
+  order    Int      @default(0)
+  active   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

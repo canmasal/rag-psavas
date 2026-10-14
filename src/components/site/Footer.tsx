@@ -47,6 +47,7 @@ export function Footer({ settings, courses }: { settings: SiteSettings; courses:
               {[
                 ["/hakkimizda", "Hakkımızda"],
                 ["/ragip-savas-kimdir", "Ragıp Savaş Kimdir?"],
+                ["/egitmenlerimiz", "Eğitmenlerimiz"],
                 ["/rehber", "Rehber & SSS"],
                 ["/blog", "Blog"],
                 ["/galeri", "Galeri"],
