@@ -1,0 +1,193 @@
+// Ragıp Savaş Sanat Akademisi — veri modeli
+// Varsayılan veritabanı SQLite'tır. PostgreSQL'e geçmek için provider'ı
+// "postgresql" yapıp DATABASE_URL'i güncellemeniz yeterlidir.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         String   @default("MEMBER") // MEMBER | ADMIN
+  address      String?
+  city         String?
+  identityNo   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  students    Student[]
+  enrollments Enrollment[]
+  payments    Payment[]
+  resetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Student {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  birthDate DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  enrollments Enrollment[]
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  category    String
+  shortDesc   String
+  content     String
+  ageRange    String
+  duration    String
+  format      String
+  schedule    String
+  highlights  String   @default("") // satır satır
+  color       String   @default("#b8242f")
+  icon        String   @default("sparkles")
+  image       String?
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  packages    CoursePackage[]
+  enrollments Enrollment[]
+}
+
+model CoursePackage {
+  id          String  @id @default(cuid())
+  courseId    String
+  course      Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Int // kuruş değil, TL (tam sayı)
+  months      Int     @default(1)
+  popular     Boolean @default(false)
+  order       Int     @default(0)
+
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  packageId String?
+  package   CoursePackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  status    String   @default("PENDING_PAYMENT") // PENDING_PAYMENT | ACTIVE | COMPLETED | CANCELLED
+  note      String?
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+
+  payments Payment[]
+}
+
+model Payment {
+  id                String      @id @default(cuid())
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentId      String?
+  enrollment        Enrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  amount            Int
+  description       String
+  method            String // CARD | BANK_TRANSFER
+  status            String      @default("PENDING") // PENDING | PAID | FAILED | REFUNDED | CANCELLED
+  provider          String? // iyzico | test | manual
+  providerToken     String?
+  providerPaymentId String?
+  errorMessage      String?
+  createdAt         DateTime    @default(now())
+  paidAt            DateTime?
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String
+  content     String
+  category    String
+  cover       String?
+  authorName  String    @default("Ragıp Savaş Sanat Akademisi")
+  readMinutes Int       @default(4)
+  published   Boolean   @default(true)
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  imageUrl  String
+  videoUrl  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TrialRequest {
+  id          String   @id @default(cuid())
+  parentName  String
+  phone       String
+  email       String?
+  studentName String
+  studentAge  String
+  courseSlug  String
+  preferred   String?
+  note        String?
+  status      String   @default("NEW") // NEW | CONTACTED | DONE
+  createdAt   DateTime @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
