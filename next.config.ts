@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "8mb" },
   },
+  // Vercel önizleme modunda örnek veritabanını sunucu fonksiyonlarına dahil et
+  outputFileTracingIncludes: {
+    "/**/*": ["./prisma/demo.db"],
+  },
 };
 
 export default nextConfig;
